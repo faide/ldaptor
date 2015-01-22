@@ -1,5 +1,4 @@
-# Twisted, the Framework of Your Internet
-# Copyright (C) 2001 Matthew W. Lefkowitz
+# Copyright (C) 2001 Tommi Virtanen
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of version 2.1 of the GNU Lesser General Public
@@ -196,7 +195,7 @@ class LDAPClient(protocol.Protocol):
     ##Unbind
     def unbind(self):
         if not self.connected:
-            raise "Not connected (TODO)" #TODO make this a real object
+            raise Exception("Not connected (TODO)") #TODO make this a real object
         r=pureldap.LDAPUnbindRequest()
         self.send_noResponse(r)
         self.transport.loseConnection()

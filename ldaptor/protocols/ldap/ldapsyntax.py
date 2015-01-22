@@ -7,7 +7,6 @@ from ldaptor.protocols.ldap import ldapclient, ldif, distinguishedname, ldaperro
 from ldaptor.protocols import pureldap, pureber
 from ldaptor.samba import smbpassword
 from ldaptor import ldapfilter, interfaces, delta, attributeset, entry
-
 class PasswordSetAggregateError(Exception):
     """Some of the password plugins failed"""
     def __init__(self, errors):
@@ -384,18 +383,25 @@ class LDAPEntryWithClient(entry.EditableLDAPEntry):
     def addChild(self, rdn, attributes):
         self._checkState()
 
+        a = []
+        if attributes.get('objectClass', None):
+            a.append(('objectClass', attributes['objectClass']))
+            del attributes['objectClass']
+        attributes = a+sorted(attributes.items())
+        del a
         rdn = distinguishedname.RelativeDistinguishedName(rdn)
         dn = distinguishedname.DistinguishedName(
             listOfRDNs=(rdn,)+self.dn.split())
 
         ldapAttrs = []
-        for attrType, values in attributes.items():
+        for attrType, values in attributes:
             ldapAttrType = pureldap.LDAPAttributeDescription(attrType)
             l = []
             for value in values:
+                if (isinstance(value, unicode)):
+                    value = value.encode('utf-8')
                 l.append(pureldap.LDAPAttributeValue(value))
             ldapValues = pureber.BERSet(l)
-
             ldapAttrs.append((ldapAttrType, ldapValues))
         op=pureldap.LDAPAddRequest(entry=str(dn),
                                    attributes=ldapAttrs)
